@@ -42,9 +42,9 @@ namespace TaskManagement.Controllers
         [HttpPost("notify")]
         public async Task<IActionResult> NotifyFrontend()
         {
-            var result = await this.trackingRepository.getCoordinates();
-            // Send message to all connected clients
-            await this.hubContext.Clients.All.SendAsync("ReceiveMessage", "New data is available!");
+            //var result = await this.trackingRepository.getCoordinates();
+            //// Send message to all connected clients
+           await this.hubContext.Clients.All.SendAsync("ReceiveMessage", "New data is available!");
 
             return Ok();
         }
