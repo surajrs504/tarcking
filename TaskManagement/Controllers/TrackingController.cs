@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using TaskManagement.Model.Domain;
+using TaskManagement.Model.DTOs;
 using TaskManagement.Repositiories;
 using TaskManagement.SignalR;
 
@@ -12,31 +12,21 @@ namespace TaskManagement.Controllers
     public class TrackingController : ControllerBase
     {
         private readonly ITrackingRepository trackingRepository;
+        private readonly ITrackingState trackingState;
         private readonly IHubContext<NotificationHub> hubContext;
 
-        public TrackingController(ITrackingRepository trackingRepository, IHubContext<NotificationHub> hubContext)
+        public TrackingController(ITrackingRepository trackingRepository,ITrackingState trackingState, IHubContext<NotificationHub> hubContext)
         {
             this.trackingRepository = trackingRepository;
+            this.trackingState = trackingState;
             this.hubContext = hubContext;
         }
 
         [HttpPost("addTracking")]
-        public async  Task<IActionResult> storeCoordinates([FromBody] TrackingDomain details)
+        public async Task<IActionResult> storeCoordinates([FromBody] AddUserCoordinatesDTO details)
         {
-            await this.trackingRepository.addCooridinates(details);
-            return Ok(details);
-        }
-
-        [HttpGet("getCoordinates")]
-        public async Task<IActionResult> getCoordinates()
-        {
-            var result = await this.trackingRepository.getCoordinates();
-            Console.WriteLine("hello this in cotroller");
-            if(result == null)
-            {
-                return NotFound();
-            }
-            return Ok(result);
+            await this.trackingRepository.AddLocationAsync(details);
+            return Ok();
         }
 
         [HttpPost("notify")]
@@ -48,5 +38,16 @@ namespace TaskManagement.Controllers
 
             return Ok();
         }
+
+
+        [HttpPost("start")]
+        public IActionResult StartTracking([FromBody] string email)
+        {
+            trackingState.SetTrackingId(email);
+            return Ok();
+        }
+
+
+      
     }
 }

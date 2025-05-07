@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="CommonService\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

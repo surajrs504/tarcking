@@ -2,17 +2,17 @@
 
 #nullable disable
 
-namespace TaskManagement.Migrations
+namespace TaskManagement.Migrations.AppDb
 {
     /// <inheritdoc />
-    public partial class timestampadded : Migration
+    public partial class newMsField : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<double>(
-                name: "TimeStamp",
-                table: "Tracking",
+                name: "TimeStampMs",
+                table: "UserLocations",
                 type: "float",
                 nullable: false,
                 defaultValue: 0.0);
@@ -22,8 +22,8 @@ namespace TaskManagement.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "TimeStamp",
-                table: "Tracking");
+                name: "TimeStampMs",
+                table: "UserLocations");
         }
     }
 }

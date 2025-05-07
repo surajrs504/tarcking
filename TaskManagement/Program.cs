@@ -5,8 +5,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TaskManagement.BgServices;
 using TaskManagement.DataContext;
+using TaskManagement.Hubs;
+using TaskManagement.Model.Domain;
 using TaskManagement.Repositiories;
-using TaskManagement.SignalR;   
+using TaskManagement.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,22 +17,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddDbContext<TaskManagmentDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString")));
-builder.Services.AddDbContext<TaskManagementAuthDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AuthConnectionString")));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionStringAuth")));
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ITeamRepository, TeamRepository>();
-builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
 builder.Services.AddScoped<ITokenInterface, TokenRepository>();
+builder.Services.AddScoped<IUserLocationInterface, UserLocationRepository>();
+builder.Services.AddSingleton<ITrackingState, TrackingState>();
+builder.Services.AddScoped<IUserRespository, UserRepository>();
+builder.Services.AddHostedService<DataBackgroundService>();
 
-builder.Services.AddIdentityCore<IdentityUser>()
-    .AddRoles<IdentityRole>()
-    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("NZWalks")
-    .AddEntityFrameworkStores<TaskManagementAuthDbContext>()
-    .AddDefaultTokenProviders();
+//builder.Services.AddIdentityCore<IdentityUser>()
+//    .AddRoles<IdentityRole>()
+//    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("NZWalks")
+//    .AddEntityFrameworkStores<TaskManagementAuthDbContext>()
+//    .AddDefaultTokenProviders();
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -42,6 +45,10 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredUniqueChars = 0;
     options.Password.RequiredLength = 6;
 });
+
+builder.Services.AddIdentity<ApplicationUserDomain, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 
 //this config it to setup the token validation in the app
@@ -63,7 +70,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddOpenApi();
 
 builder.Services.AddSignalR();
-builder.Services.AddTransient<IHostedService, DataBackgroundService>();
+//builder.Services.AddTransient<IHostedService, DataBackgroundService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularFrontend", builder =>
@@ -97,8 +104,11 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.MapHub<NotificationHub>("/notificationHub").RequireCors("AllowAngularFrontend");
-
+//app.MapHub<NotificationHub>("/notificationHub").RequireCors("AllowAngularFrontend");
+//app.MapHub<TaskManagement.Hubs.NotificationHub>("/notificationHub").RequireCors("AllowAngularFrontend");
+//app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<TrackingHub>("/trackinghub").RequireCors("AllowAngularFrontend");
 app.MapControllers();
+
 
 app.Run();
